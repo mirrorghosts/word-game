@@ -1,0 +1,10 @@
+frontend: npm install
+aztán
+npm run dev
+(frontend mappán belül)
+
+backend: pip install "fastapi[standard]"
+aztán
+uvicorn main:app --reload
+vagy
+fastapi dev backend.py
