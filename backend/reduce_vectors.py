@@ -26,14 +26,15 @@ for word in model.index_to_key:
     # Keep only words that are:
     # - alphabetic (no numbers/punctuation)
     # - no underscores (removes phrases)
+    # - is lowercase
     # - reasonable length (filters garbage)
-    if word.isalpha() and '_' not in word and 2 <= len(word) <= 20:
+    if word.isalpha() and '_' not in word and word.islower() and 5 <= len(word) <= 20:
         clean_words.append(word)
 
 print(f"Filtered to {len(clean_words)} clean words")
 
-# Keep only first 20k most common clean words
-clean_words = clean_words[:20000]
+# Keep only first 3k most common clean words (filtering out 100 most common ones though)
+clean_words = clean_words[100:3100]
 
 # Create reduced model dictionary
 reduced_model = {word: model[word] for word in clean_words}

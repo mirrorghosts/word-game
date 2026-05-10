@@ -11,7 +11,7 @@ const startTime = ref(0)
 
 const fetchNextWords = async () => {
   try {
-    const response = await axios.get(`http://127.0.0.1:8000/get_next_words/${currentWord.value}`)
+    const response = await axios.get(`http://127.0.0.1:8000/get_next_words/${currentWord.value}/${targetWord.value}`)
     nextWords.value = response.data.next_words
   } catch (error) {
     console.error('Hiba történt az adatok lekérésekor:', error)

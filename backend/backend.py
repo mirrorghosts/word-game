@@ -8,7 +8,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173","http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -22,31 +22,55 @@ with open('reduced_vectors.pkl', 'rb') as f:
 vocab = list(model_dict.keys())
 print(f"Loaded {len(vocab)} words")
 
-# Since we're not using KeyedVectors anymore, we calculate similarity manually
+# No more KeyedVectors
 def cosine_similarity(v1, v2):
     dot_product = np.dot(v1, v2)
     norm_v1 = np.linalg.norm(v1)
     norm_v2 = np.linalg.norm(v2)
     return dot_product / (norm_v1 * norm_v2)
 
-def get_similar_words(word: str, topn: int = 10):
+def get_similar_words(word: str, target: str, topn: int = 5):
     if word not in model_dict:
         return []
     
-    target_vec = model_dict[word]
+    vec1 = model_dict[word]
+    vec2 = model_dict[target]
+
+    current_to_target = cosine_similarity(vec1, vec2)
+
     similarities = []
+
+    print(f"Current word '{word}' similarity to target '{target}': {current_to_target}")
     
     for other_word, other_vec in model_dict.items():
-        if other_word != word:
-            sim = cosine_similarity(target_vec, other_vec)
-            similarities.append((other_word, sim))
+        if other_word == word:
+            continue
+
+        if other_word == target and current_to_target < 0.3:
+            continue
+
+        sim1 = cosine_similarity(vec1, other_vec)
+        sim2 = cosine_similarity(other_vec, vec2)
+
+        if sim2 > current_to_target:
+            progress = sim2 - current_to_target
+            score = sim1 + progress
+        else:
+            score = sim1 * 0.5
+
+        similarities.append((other_word, score))
     
     similarities.sort(key=lambda x: x[1], reverse=True)
-    return [w for w, score in similarities[:topn]]
+    result = [w for w, score in similarities[:topn]]
 
-@app.get("/get_next_words/{word}")
-def get_next_words(word: str):
-    return {"next_words": get_similar_words(word)}
+    random.shuffle(result)
+
+    print(f"RETURNING TO FRONTEND: {result}")
+    return result
+
+@app.get("/get_next_words/{word}/{target}")
+def get_next_words(word: str, target: str):
+    return {"next_words": get_similar_words(word, target)}
 
 @app.get("/get_random_words")
 def get_random_words():
