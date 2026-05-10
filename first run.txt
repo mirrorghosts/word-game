@@ -8,3 +8,6 @@ aztán
 uvicorn main:app --reload
 vagy
 fastapi dev backend.py
+
+https://fasttext.cc/docs/en/crawl-vectors.html
+innen az angol text fájl (cc.en.300.vec) kell a backendbe
